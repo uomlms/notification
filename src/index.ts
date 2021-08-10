@@ -1,18 +1,29 @@
-import dotenv from 'dotenv';
 import { resolve } from "path"
 import { connectDB } from '../config/db';
 import { app } from './app';
 import { kafka } from '@uomlms/common';
-
-dotenv.config({ path: resolve(__dirname, "../config/config.env") });
+import { SendMailConsumer } from "./kafka/consumers/send-mail-consumer";
 
 const startConsumers = async () => {
   await kafka.connectConsumer(process.env.KAFKA_URL!, process.env.KAFKA_GROUP_ID!);
+  new SendMailConsumer(kafka.consumer).subscribe();
 }
 
 const start = async () => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET must be defined');
+  }
+  if (!process.env.AUTH_EMAIL) {
+    throw new Error('AUTH_EMAIL must be defined');
+  }
+  if (!process.env.AUTH_PASSWORD) {
+    throw new Error('AUTH_PASSWORD must be defined');
+  }
+  if (!process.env.AUTH_SERVICE) {
+    throw new Error('AUTH_SERVICE must be defined');
+  }
+  if (!process.env.NO_REPLY_EMAIL) {
+    throw new Error('NO_REPLY_EMAIL must be defined');
   }
   if (!process.env.MONGO_URI) {
     throw new Error('MONGO_URI must be defined');
